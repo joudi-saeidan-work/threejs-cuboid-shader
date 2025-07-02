@@ -1,0 +1,101 @@
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      // our goal is to render a spinning, shaded cuboid on screen
+      import * as THREE from "https://web.cs.manchester.ac.uk/three/three.js-master/build/three.module.js";
+      var camera, scene, renderer, mesh;
+      //to display anything on the screen we need: 1.scene 2.camera (defines the viewpoint) 3.renderer (defines look and feel on the screen)
+
+      //Creating the scene
+      function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        //What is the purpose of the four arguments of the PerspectiveCamera function?
+        //the PerspectiveCamera function in Three.js is used to create a camera that determines what part of the scene will be visible in the screen.
+        // 1. field of view: This determines how much of the scene will be visible through the camera.
+        //2. aspect ratio:It helps adjust the view so it looks correct on different screens.
+        //3. near: how close the objects can be to the camera before they disappear from the view.
+        //4. far: This is how far the objects can be from the camera before they disappear from the view.
+
+        // What happens when you increase or decrease the numerical values?
+        //Adjusting the values of the four arguments in the PerspectiveCamera function can change the view and perspective of the scene on the screen. Increasing or decreasing the field of view value changes how much of the scene is visible. Adjusting the aspect ratio value changes the scene's appearance. Changing the near and far values affects how close or far objects can be before disappearing from the view.
+
+        camera.position.z = 5;
+        //What is the purpose of the value of camera.position.z?
+        // The value of camera.position.z determines the distance between the camera and the objects in the scene.In this case, the camera is positioned 5 units away from the objects in the scene.
+
+        //What happens when you increase or decrease the value?
+        // Increasing or decreasing this value will change how close or far away the objects appear on the screen.
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(0x000000, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        //What happens when the values of the arguments to renderer.setSize() are changed?
+        // changing the arguments of the renderer.setSize() changes the size of the output canvas affecting the rendered scene size.Increasing or decreasing the values changes the width and hight of the canvas
+        document.body.appendChild(renderer.domElement);
+        shaderCube(); //a function which defines the cube and adds it to the scene
+      }
+
+      function shaderCube() {
+        //Adding the cube (defined colors for the faces of the cube, and locations for the vertices)
+        var geometry = new THREE.BoxGeometry(2, 1, 1);
+        //What is the effect of changing the three arguments of BoxGeometry called in shaderCube()? The arguments defines the windth height and deptth of the cube. Changing these the arguments values will result in a cube with different dimentions (smaller or larger)
+
+        var material = new THREE.ShaderMaterial({
+          //adding stubs functions
+          fragmentShader: fragmentShader(), //determines the resulted color 'always' called after the vertex shader
+          vertexShader: vertexShader(), //determines what the geometry will look like
+        });
+        mesh = new THREE.Mesh(geometry, material); //adding the definition of the cube
+        scene.add(mesh); //added mesh into the scene
+      }
+
+      function animate() {
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+        //How will you speed up the cuboid’s motion?
+        //increasing the values of mesh.rotation.x and mesh.rotation.y will sped up the cuboid's motion (makes it rotate faster)
+        mesh.rotation.x += 0.011; //rotates the cube
+        mesh.rotation.y += 0.013;
+      }
+
+      function fragmentShader() {
+        //How would you change the cuboid’s colour?
+        //modifying the fragment shader will change the cuboid's color for example replacing this line gl_FragColor = vec4(vposInterpolated, 1.0); with a different color value
+        return `
+    varying vec3 vposInterpolated;
+    void main() {
+        gl_FragColor = vec4(vposInterpolated, 1.0);
+    }
+    `;
+      }
+
+      function vertexShader() {
+        return `
+     vec4 p;
+     varying vec3 vposInterpolated;
+     void main() {
+        p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        gl_Position = p;
+        vposInterpolated = p.xyz;
+     }
+     `;
+      }
+
+      init();
+      animate(); //This will result in a spinning, shaded cuboid
+    </script>
+  </body>
+</html>
